@@ -1,0 +1,3 @@
+[submodule "datasets/NorSynthClinical-PHI"]
+	path = datasets/NorSynthClinical-PHI
+	url = https://github.com/synnobra/NorSynthClinical-PHI
