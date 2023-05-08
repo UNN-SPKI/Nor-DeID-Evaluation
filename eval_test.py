@@ -5,6 +5,7 @@ import eval
 class EvaluationTests(unittest.TestCase):
     def test_norsynth_annotations(self):
         sample = "<First_Name>Frank</First_Name> er innlagt ved <Location>Testsykehuset</Location>"
+        no_tags = "Frank er innlagt ved Testsykehuset"
         annotations = eval.list_annotations(sample)
         self.assertEqual(len(annotations), 2, "we expect to find two annotations")
         
