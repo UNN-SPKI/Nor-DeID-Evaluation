@@ -33,9 +33,11 @@ def list_annotations(task: str) -> List[Tuple[int, int, str]]:
     markup_offset = 0
     for match in matches:
         tag_name, contents = match.groups()
-        total_markup_chars = (2*len(tag_name) + 4)
+        # The annotations consist of an opening tag and a closing tag
+        # (e.g. <Age></Age>) - the tags themselves add 5 characters:
+        total_markup_chars = (2*len(tag_name) + 5)
         tag_start = match.span()[0] - markup_offset
-        tag_end = match.span()[1] - markup_offset - total_markup_chars - 1
+        tag_end = match.span()[1] - markup_offset - total_markup_chars
         markup_offset += total_markup_chars
         annotations.append((tag_start, tag_end, tag_name))
     return annotations
