@@ -9,9 +9,9 @@ from tap import Tap
 logging.basicConfig(level=logging.DEBUG)
 
 class ExperimentArguments(Tap):
-    dataset: str = 'norsynthclinical'
-    model: str = 'dummy'
-    spacyPipeline: str = 'nb_core_news_sm'
+    dataset: str = 'norsynthclinical' # The identifier of the dataset to use (see load_dataset in eval.py)
+    model: str = 'dummy' # The identifier of the model to use (see load_model in eval.py)
+    spacyPipeline: str = 'nb_core_news_sm' # The SpaCy Language to use for tokenization
 
 def main(args: ExperimentArguments):
     logging.debug(f'Loading pipeline {args.spacyPipeline}')
