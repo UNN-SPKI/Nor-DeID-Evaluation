@@ -2,6 +2,7 @@
 
 import os
 import models.dummy
+import models.davinci_edit
 import spacy
 import logging
 from tap import Tap
@@ -12,13 +13,14 @@ class ExperimentArguments(Tap):
     dataset: str = 'norsynthclinical' # The identifier of the dataset to use (see load_dataset in eval.py)
     model: str = 'dummy' # The identifier of the model to use (see load_model in eval.py)
     spacyPipeline: str = 'nb_core_news_sm' # The SpaCy Language to use for tokenization
+    openAIKey: str = 'OPENAI_KEY_HERE' # OpenAI key for comparison models
 
 def main(args: ExperimentArguments):
     logging.debug(f'Loading pipeline {args.spacyPipeline}')
     nlp = spacy.load(args.spacyPipeline)
     
     logging.debug(f'Loading model {args.model}')
-    model = load_model(args.model)
+    model = load_model(args.model, args)
 
     logging.debug(f'Loading dataset {args.dataset}')
     doc_bin = load_dataset(args.dataset)
@@ -30,8 +32,13 @@ def main(args: ExperimentArguments):
     evaluation = nlp.evaluate(answers)
     print(nlp.evaluate(answers))
 
-def load_model(model_name: str):
-    return models.dummy.DummyModel()
+def load_model(model_name: str, args: ExperimentArguments):
+    if model_name == 'dummy':
+        return models.dummy.DummyModel()
+    elif model_name == 'davinci-edit':
+        return models.davinci_edit.DavinciEditModel(args.openAIKey)
+    else:
+        raise KeyError(f'Cannot find model {model_name}')
 
 def load_dataset(dataset_name: str) -> spacy.tokens.DocBin:
     if dataset_name != 'norsynthclinical':
