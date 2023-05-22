@@ -40,10 +40,7 @@ def load_model(model_name: str, args: ExperimentArguments):
     else:
         raise KeyError(f'Cannot find model {model_name}')
 
-def load_dataset(dataset_name: str) -> spacy.tokens.DocBin:
-    if dataset_name != 'norsynthclinical':
-        raise ValueError(f"Unknown dataset {dataset_name}")
-    
+def load_norsynth() -> spacy.tokens.DocBin:
     logging.debug(f'Converting CoNLL to SpaCy...')
     if not os.path.exists('tmp/norsynth/reference_standard_annotated.spacy'):
         os.makedirs('tmp/norsynth/', exist_ok=True)
@@ -55,6 +52,19 @@ def load_dataset(dataset_name: str) -> spacy.tokens.DocBin:
     
     logging.debug(f'Retrieving NorSynthClinical-PHI...')
     return spacy.tokens.DocBin().from_disk('tmp/norsynth/reference_standard_annotated.spacy')
+
+def load_docbin(dataset_path: str) -> spacy.tokens.DocBin:
+    logging.debug(f'Loading dataset from path: {dataset_path}')
+    return spacy.tokens.DocBin().from_disk(dataset_path)
+
+def load_dataset(dataset_name: str) -> spacy.tokens.DocBin:
+    if dataset_name == 'norsynthclinical':
+        return load_norsynth()
+    
+    if os.path.exists(dataset_name) and dataset_name.endswith('.spacy'):
+        return load_docbin(dataset_name)
+    
+    raise ValueError(f"Could not find dataset identifier and could not find a file at {dataset_name}")
 
 if __name__ == '__main__':
     args = ExperimentArguments().parse_args()

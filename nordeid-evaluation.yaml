@@ -1,0 +1,21 @@
+kind: Job
+apiVersion: batch/v1
+metadata:
+  name: nordeid-evaluation
+spec:
+  template:
+    spec:
+      containers:
+      - name: nordeid-evaluation
+        image: "jlu015/nordeid-evaluation"
+        workingDir: /experiment/
+        command: ["python3", "eval.py", "--dataset", "storage/norsynth/reference_standard_annotated.spacy"]
+        volumeMounts:
+        - name: storage
+          mountPath: /storage
+      volumes:
+      - name: storage
+        persistentVolumeClaim:
+          claimName: storage
+      restartPolicy: OnFailure
+  backoffLimit: 0
