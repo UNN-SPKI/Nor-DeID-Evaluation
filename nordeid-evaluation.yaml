@@ -1,7 +1,7 @@
 kind: Job
 apiVersion: batch/v1
 metadata:
-  name: limeseg-fewshot
+  name: nordeid-evaluation
 spec:
   template:
     spec:
@@ -9,7 +9,7 @@ spec:
       - name: nordeid-evaluation
         image: "jlu015/nordeid-evaluation"
         workingDir: /experiment/
-        command: ["python3", "eval.py", "--dataset", "storage/norsynth.spacy"]
+        command: ["python3", "eval.py", "--dataset", "storage/norsynth/reference_standard_annotated.spacy"]
         volumeMounts:
         - name: storage
           mountPath: /storage
