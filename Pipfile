@@ -7,6 +7,8 @@ name = "pypi"
 typed-argument-parser = "*"
 spacy = "*"
 requests = "*"
+transformers = "*"
+torch = "*"
 
 [dev-packages]
 ipykernel = "*"

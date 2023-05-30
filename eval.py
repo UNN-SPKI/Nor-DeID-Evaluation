@@ -1,17 +1,20 @@
 #!/usr/bin/env python3
 
 import os
-import models.dummy
-import models.davinci_edit
 import spacy
 import logging
 from tap import Tap
+
+import models.dummy
+import models.davinci_edit
+import models.hf_transformer
 
 logging.basicConfig(level=logging.DEBUG)
 
 class ExperimentArguments(Tap):
     dataset: str = 'norsynthclinical' # The identifier of the dataset to use (see load_dataset in eval.py)
     model: str = 'dummy' # The identifier of the model to use (see load_model in eval.py)
+    modelName: str = 'NbAiLab/nb-gpt-j-6B-alpaca' # For models which expect a path, load the model here
     spacyPipeline: str = 'nb_core_news_sm' # The SpaCy Language to use for tokenization
     openAIKey: str = 'OPENAI_KEY_HERE' # OpenAI key for comparison models
 
@@ -37,6 +40,8 @@ def load_model(model_name: str, args: ExperimentArguments):
         return models.dummy.DummyModel()
     elif model_name == 'davinci-edit':
         return models.davinci_edit.DavinciEditModel(args.openAIKey)
+    elif model_name == 'hf-transformer':
+        return models.hf_transformer.HFTransformerModel(args.modelName)
     else:
         raise KeyError(f'Cannot find model {model_name}')
 
