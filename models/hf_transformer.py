@@ -57,7 +57,7 @@ class HFTransformerModel:
     def __init__(self, model_name: str):
         self.model_name = model_name
         self.tokenizer = transformers.AutoTokenizer.from_pretrained(pretrained_model_name_or_path=model_name, )
-        self.model = transformers.AutoModelForCausalLM.from_pretrained(pretrained_model_name_or_path=model_name)
+        self.model = transformers.AutoModelForCausalLM.from_pretrained(pretrained_model_name_or_path=model_name).cuda()
     
     def predict(self, doc_bin: spacy.tokens.DocBin, language: spacy.Language) -> List[spacy.training.Example]:
         examples = []
@@ -83,7 +83,7 @@ class HFTransformerModel:
 
 ### Respons:"""
         inputs = self.tokenizer(ANNOTATION_TASK, return_tensors="pt")
-        input_ids = inputs["input_ids"]
+        input_ids = inputs["input_ids"].cuda()
         generation_output = self.model.generate(
             input_ids=input_ids,
             generation_config=transformers.GenerationConfig(temperature=0.01, top_p=0.05, num_beams=1),
@@ -92,9 +92,9 @@ class HFTransformerModel:
             max_new_tokens=256,
             pad_token_id=self.tokenizer.eos_token_id
         )
-        response = ""
+        response = []
         for seq in generation_output.sequences:
             output = self.tokenizer.decode(seq, skip_special_tokens=True)
             response.append(output.split("### Respons:")[-1].strip())
-        return response
+        return ''.join(response)
         
