@@ -33,7 +33,7 @@ def main(args: ExperimentArguments):
 
     print(f"Results for model {args.model} on dataset {args.dataset}:")
     evaluation = nlp.evaluate(answers)
-    print(nlp.evaluate(answers))
+    print(evaluation)
 
 def load_model(model_name: str, args: ExperimentArguments):
     if model_name == 'dummy':
