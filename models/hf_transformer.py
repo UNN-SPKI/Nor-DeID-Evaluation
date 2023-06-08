@@ -11,6 +11,7 @@ from typing import List, Tuple
 
 import spacy
 import transformers
+import accelerate
 
 ANNOTATION_PROMPT = """
 Annotate the following clinical note with XML-style tags.
@@ -56,14 +57,25 @@ def list_annotations(annotated: str) -> List[Tuple[int, int, str]]:
 class HFTransformerModel:
     def __init__(self, model_name: str):
         self.model_name = model_name
-        self.tokenizer = transformers.AutoTokenizer.from_pretrained(pretrained_model_name_or_path=model_name, )
-        self.model = transformers.AutoModelForCausalLM.from_pretrained(pretrained_model_name_or_path=model_name).cuda()
+        self.tokenizer = transformers.AutoTokenizer.from_pretrained(pretrained_model_name_or_path=model_name)
+        config = transformers.AutoConfig.from_pretrained(model_name)
+        with accelerate.init_empty_weights():
+           self.model = transformers.AutoModelForCausalLM.from_config(config)
+        
+        self.model.tie_weights()
+        accelerate.load_checkpoint_and_dispatch(
+            self.model, model_name, device_map="auto", no_split_module_classes=["GPTJBlock"]
+        )
     
     def predict(self, doc_bin: spacy.tokens.DocBin, language: spacy.Language) -> List[spacy.training.Example]:
         examples = []
         for doc in doc_bin.get_docs(language.vocab):
             logging.debug(f"Task: {doc.text}")
+            start = time.time()
             prediction = self.predict_task(doc.text)
+            inference_time = time.time() - start
+            logging.debug(f"Finished in {inference_time} seconds.")
+
             logging.debug(f"Predicted: {prediction}")
             annotations = {'entities': list_annotations(prediction)}
             logging.debug(f"Annotations: {annotations}")
