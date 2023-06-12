@@ -1,5 +1,5 @@
 """
-davinci_edit is a wrapper around OpenAI's gpt-3.5-turbo model
+gpt_chat is a wrapper around OpenAI's gpt-3.5-turbo model
 and the redaction and pseudonymization task phrased for the model.
 """
 
