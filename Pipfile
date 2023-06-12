@@ -14,6 +14,7 @@ spacy = "*"
 requests = "*"
 transformers = "*"
 torch = {version = "==2.0.1+cu118", index = "downloadpytorch"}
+accelerate = "*"
 
 [dev-packages]
 ipykernel = "*"
