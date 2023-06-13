@@ -14,7 +14,6 @@ import spacy
 from joblib import Memory
 
 CACHE_DIRECTORY = '.cache'
-CACHE_MEMORY = Memory(CACHE_DIRECTORY, verbose=0)
 
 SYSTEM_INSTRUCTION = """
 Annotate the following clinical note with XML-style tags.
@@ -85,6 +84,8 @@ def get_chat_completion(source, openAIAPIKey, temperature, rate_limit = None):
     response = r.json()
     return response
 
+def fix_orthography(answer: str) -> str:
+    return re.sub('\s*([,.])\s*', r' \1 ', answer).rstrip()
 
 class GptChatModel:
     def __init__(self, openAIAPIKey, rate_limit=2, retries=5):
@@ -120,7 +121,7 @@ class GptChatModel:
                 continue
 
             answer = response['choices'][0]['message']['content']
-            return answer
+            return fix_orthography(answer)
 
         logging.error(f'Could not get an edit after {self._retries} tries.')
         return ''

@@ -75,6 +75,9 @@ def get_completion(source, instruction, openAIAPIKey, temperature, rate_limit = 
     response = r.json()
     return response
 
+def fix_orthography(answer: str) -> str:
+    return re.sub('\s*([,.])\s*', r' \1 ', answer).rstrip()
+
 class DavinciEditModel:
     def __init__(self, openAIAPIKey, rate_limit = 2, retries = 5):
         self._openAIAPIKey = openAIAPIKey
@@ -109,7 +112,7 @@ class DavinciEditModel:
                 continue
 
             answer = response['choices'][0]['text']
-            return answer
+            return fix_orthography(answer)
         
         logging.error(f'Could not get an edit after {self._retries} tries.')
         return ''
