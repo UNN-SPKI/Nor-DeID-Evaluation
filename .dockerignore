@@ -1,2 +1,4 @@
 venv/
 tmp/
+datasets/n2c2/
+.cache/
