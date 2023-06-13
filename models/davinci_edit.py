@@ -17,7 +17,7 @@ CACHE_DIRECTORY = '.cache'
 
 ANNOTATION_PROMPT = """
 Annotate the following clinical note with XML-style tags.
-Enclose any strings that might be a name or acronym or initials, patients' names, doctors' names, the names of the M.D. or Dr. with a pair of <NAME> tags. 
+Enclose any strings that might be a name or acronym or initials, patients' names, doctors' names, the names of the M.D. or Dr. with a pair of <Name> tags. 
 Enclose any pager names and medical staff names with <Name> tags. 
 Enclose any strings that might be a location or address, such as \"Åssiden 31\" with <Location> tags. 
 Enclose the patient's ages and any strings that look like \"X år gammel\" with <Age> tags. 
@@ -76,7 +76,9 @@ def get_completion(source, instruction, openAIAPIKey, temperature, rate_limit = 
     return response
 
 def fix_orthography(answer: str) -> str:
-    return re.sub('\s*([,.])\s*', r' \1 ', answer).rstrip()
+    space_punctuation = re.sub('\s*([,.])\s+', r' \1 ', answer).rstrip()
+    single_spaces = re.sub('\s+', ' ', space_punctuation)
+    return single_spaces
 
 class DavinciEditModel:
     def __init__(self, openAIAPIKey, rate_limit = 2, retries = 5):
@@ -91,6 +93,10 @@ class DavinciEditModel:
             logging.debug(f"Task: {doc.text}")
             prediction = self.predict_task(doc.text)
             logging.debug(f"Predicted: {prediction}")
+            if remove_tags(prediction) != doc.text.rstrip():
+                logging.warning("Misaligned text!")
+                logging.warning(f"ORIGINAL: {doc.text}")
+                logging.warning(f"RETURNED: {remove_tags(prediction)}")
             annotations = {'entities': list_annotations(prediction)}
             logging.debug(f"Annotations: {annotations}")
 

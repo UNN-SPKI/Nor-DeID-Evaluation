@@ -15,7 +15,7 @@ import accelerate
 
 ANNOTATION_PROMPT = """
 Annotate the following clinical note with XML-style tags.
-Enclose any strings that might be a name or acronym or initials, patients' names, doctors' names, the names of the M.D. or Dr. with a pair of <NAME> tags. 
+Enclose any strings that might be a name or acronym or initials, patients' names, doctors' names, the names of the M.D. or Dr. with a pair of <Name> tags. 
 Enclose any pager names and medical staff names with <Name> tags. 
 Enclose any strings that might be a location or address, such as \"Åssiden 31\" with <Location> tags. 
 Enclose the patient's ages and any strings that look like \"X år gammel\" with <Age> tags. 
@@ -54,6 +54,11 @@ def list_annotations(annotated: str) -> List[Tuple[int, int, str]]:
         annotations.append((tag_start, tag_end, tag_name))
     return annotations
 
+def fix_orthography(answer: str) -> str:
+    space_punctuation = re.sub('\s*([,.])\s+', r' \1 ', answer).rstrip()
+    single_spaces = re.sub('\s+', ' ', space_punctuation)
+    return single_spaces
+
 class HFTransformerModel:
     def __init__(self, model_name: str):
         self.model_name = model_name
@@ -72,7 +77,7 @@ class HFTransformerModel:
         for doc in doc_bin.get_docs(language.vocab):
             logging.debug(f"Task: {doc.text}")
             start = time.time()
-            prediction = self.predict_task(doc.text)
+            prediction = fix_orthography(self.predict_task(doc.text))
             inference_time = time.time() - start
             logging.debug(f"Finished in {inference_time} seconds.")
 
