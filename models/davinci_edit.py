@@ -11,6 +11,10 @@ from typing import List, Tuple
 import requests
 import spacy
 
+from joblib import Memory
+
+CACHE_DIRECTORY = '.cache'
+
 ANNOTATION_PROMPT = """
 Annotate the following clinical note with XML-style tags.
 Enclose any strings that might be a name or acronym or initials, patients' names, doctors' names, the names of the M.D. or Dr. with a pair of <NAME> tags. 
@@ -52,11 +56,31 @@ def list_annotations(annotated: str) -> List[Tuple[int, int, str]]:
         annotations.append((tag_start, tag_end, tag_name))
     return annotations
 
+def get_completion(source, instruction, openAIAPIKey, temperature, rate_limit = None):
+    if rate_limit:
+        time.sleep(rate_limit)
+    r = requests.post('https://api.openai.com/v1/edits',
+        json={
+            'model': 'text-davinci-edit-001',
+            'input': source,
+            'instruction': instruction,
+            'temperature': temperature
+        },
+        headers={
+            'Authorization': f'Bearer {openAIAPIKey}',
+            'Content-Type': 'application/json'
+        })
+    if r.status_code != requests.codes.ok:
+        logging.error(f"Got status code {r.status_code} from OpenAI.")
+    response = r.json()
+    return response
+
 class DavinciEditModel:
     def __init__(self, openAIAPIKey, rate_limit = 2, retries = 5):
         self._openAIAPIKey = openAIAPIKey
         self._rate_limit = rate_limit
         self._retries = retries
+        self._memory = Memory(CACHE_DIRECTORY)
     
     def predict(self, doc_bin: spacy.tokens.DocBin, language: spacy.Language) -> List[spacy.training.Example]:
         examples = []
@@ -76,22 +100,8 @@ class DavinciEditModel:
         temperature = 0.0 
         instruction = ANNOTATION_PROMPT
         while tries < self._retries:
-            if self._rate_limit:
-                time.sleep(self._rate_limit)
-            r = requests.post('https://api.openai.com/v1/edits',
-                json={
-                    'model': 'text-davinci-edit-001',
-                    'input': source,
-                    'instruction': instruction,
-                    'temperature': temperature
-                },
-                headers={
-                    'Authorization': f'Bearer {self._openAIAPIKey}',
-                    'Content-Type': 'application/json'
-                })
-            if r.status_code != requests.codes.ok:
-                logging.error(f"Got status code {r.status_code} from OpenAI.")
-            response = r.json()
+            get_cached_completion = self._memory.cache(get_completion)
+            response = get_cached_completion(source, instruction, self._openAIAPIKey, temperature, self._rate_limit)
             if 'choices' not in response:
                 logging.error("Unexpected answer from OpenAI - could not find \'choices\'")
                 temperature += 0.01
