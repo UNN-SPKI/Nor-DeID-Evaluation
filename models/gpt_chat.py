@@ -16,16 +16,21 @@ from joblib import Memory
 CACHE_DIRECTORY = '.cache'
 
 SYSTEM_INSTRUCTION = """
-Annotate the following clinical note with XML-style tags.
-Enclose any strings that might be a name or acronym or initials, patients' names, doctors' names, the names of the M.D. or Dr. with a pair of <Name> tags. 
-Enclose any pager names and medical staff names with <Name> tags. 
-Enclose any strings that might be a location or address, such as \"Åssiden 31\" with <Location> tags. 
-Enclose the patient's ages and any strings that look like \"X år gammel\" with <Age> tags. 
-Enclose clinical and hospital names with <Health_Care_Unit> tags. 
-Enclose phone numbers and 8 digit long numbers with <Phone> tags. 
-Enclose social security numbers and 11 digit long numbers with <Social_Security_Number> tags. 
+Annotate the following clinical notes with XML-style tags.
+Enclose first names with <First_Name> tags. 
+Enclose last names with <Last_Name> tags.
+Enclose any strings that might be a location or address, such as "Åssiden 31" with <Location> tags. 
+Enclose clinical and hospital names with <Location> tags. 
+Enclose the patient's age and any texts that look like "X år gammel" with <Age> tags. 
+Enclose phone numbers with <Phone_Number> tags.
+Enclose 8 digit long numbers with <Phone_Number> tags. 
+Enclose social security numbers with <Social_Security_Number> tags.
+Enclose 11 digit long numbers with <Social_Security_Number> tags. 
 Enclose dates and times with <Date> tags.
+Do not use any tags which were not specified above.
 """
+
+EXPECTED_TAGS = ['First_Name', 'Last_Name', 'Location', 'Health_Care_Unit', 'Age', 'Phone_Number', 'Social_Security_Number', 'Date']
 
 # _ENCLOSED_IN_TAGS matches on expressions with XML-style tags (e.g. '<Age>23</Age>')
 # putting the tag name in the first capturing group, and the contents in the second
@@ -55,6 +60,8 @@ def list_annotations(annotated: str) -> List[Tuple[int, int, str]]:
         tag_start = match.span()[0] - markup_offset
         tag_end = match.span()[1] - markup_offset - total_markup_chars
         markup_offset += total_markup_chars
+        if tag_name not in EXPECTED_TAGS:
+            continue
         annotations.append((tag_start, tag_end, tag_name))
     return annotations
 
@@ -62,11 +69,13 @@ def get_chat_completion(source, openAIAPIKey, temperature, rate_limit = None):
     if rate_limit:
         time.sleep(rate_limit)
     prologue = [
-        {'role': 'system', 'content': SYSTEM_INSTRUCTION}
+        {'role': 'system', 'content': SYSTEM_INSTRUCTION},
+        {'role': 'user', 'content': 'Input: Georg Nordmann er 47 år gammel og innlagt på Haukeland siden 3. april . Georgs kone Åshild ønsker at vi ringer henne på telefon 770 12345 når vi vet mer .: '},
+        {'role': 'assistant', 'content': '<First_Name>Georg</First_Name> <Last_Name>Nordmann</Last_Name> er <Age>47 år gammel</Age> og innlagt på <Location>Haukeland</Location> siden <Date>3. april</Date> . <First_Name>Georgs</First_Name> kone <First_Name>Åshild</First_Name> ønsker at vi ringer henne på telefon <Phone_Number>770 12345</Phone_Number> når vi vet mer .'},
     ]
-    messages = prologue.append({
-        'Input: ' + source
-    })
+    messages = prologue + [{
+        'role': 'user', 'content': 'Input: ' + source
+    }]
     r = requests.post('https://api.openai.com/v1/chat/completions',
                       json={
                           'model': 'gpt-3.5-turbo',
