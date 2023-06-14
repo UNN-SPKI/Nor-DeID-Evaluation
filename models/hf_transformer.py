@@ -14,15 +14,18 @@ import transformers
 import accelerate
 
 ANNOTATION_PROMPT = """
-Annotate the following clinical note with XML-style tags.
-Enclose any strings that might be a name or acronym or initials, patients' names, doctors' names, the names of the M.D. or Dr. with a pair of <Name> tags. 
-Enclose any pager names and medical staff names with <Name> tags. 
-Enclose any strings that might be a location or address, such as \"Åssiden 31\" with <Location> tags. 
-Enclose the patient's ages and any strings that look like \"X år gammel\" with <Age> tags. 
-Enclose clinical and hospital names with <Health_Care_Unit> tags. 
-Enclose phone numbers and 8 digit long numbers with <Phone> tags. 
-Enclose social security numbers and 11 digit long numbers with <Social_Security_Number> tags. 
+Annotate the following clinical notes with XML-style tags.
+Enclose first names with <First_Name> tags. 
+Enclose last names with <Last_Name> tags.
+Enclose any strings that might be a location or address, such as "Åssiden 31" with <Location> tags. 
+Enclose clinical and hospital names with <Location> tags. 
+Enclose the patient's age and any texts that look like "X år gammel" with <Age> tags. 
+Enclose phone numbers with <Phone_Number> tags.
+Enclose 8 digit long numbers with <Phone_Number> tags. 
+Enclose social security numbers with <Social_Security_Number> tags.
+Enclose 11 digit long numbers with <Social_Security_Number> tags. 
 Enclose dates and times with <Date> tags.
+Do not use any tags which were not specified above.
 """
 
 # _ENCLOSED_IN_TAGS matches on expressions with XML-style tags (e.g. '<Age>23</Age>')
