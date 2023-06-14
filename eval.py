@@ -27,7 +27,7 @@ def main(args: ExperimentArguments):
     model = load_model(args.model, args)
 
     logging.debug(f'Loading dataset {args.dataset}')
-    doc_bin = load_dataset(args.dataset)
+    doc_bin = load_dataset(args.dataset, nlp.vocab)
     
     logging.debug(f'Predicting...')
     answers = model.predict(doc_bin, nlp)
@@ -48,7 +48,7 @@ def load_model(model_name: str, args: ExperimentArguments):
     else:
         raise KeyError(f'Cannot find model {model_name}')
 
-def load_norsynth() -> spacy.tokens.DocBin:
+def load_norsynth(vocab) -> spacy.tokens.DocBin:
     logging.debug(f'Converting CoNLL to SpaCy...')
     if not os.path.exists('tmp/norsynth/reference_standard_annotated.spacy'):
         os.makedirs('tmp/norsynth/', exist_ok=True)
@@ -59,15 +59,32 @@ def load_norsynth() -> spacy.tokens.DocBin:
             file_type="spacy")
     
     logging.debug(f'Retrieving NorSynthClinical-PHI...')
-    return spacy.tokens.DocBin().from_disk('tmp/norsynth/reference_standard_annotated.spacy')
+    examples = spacy.tokens.DocBin().from_disk('tmp/norsynth/reference_standard_annotated.spacy')
+    map_categories = {
+        'Date_Part': 'Date',
+        'Date_Full': 'Date',
+        'Health_Care_Unit': 'Location'
+    }
+    mapped_label = lambda l: map_categories[l] if l in map_categories else l
+    fixed_docs = []
+    for doc in examples.get_docs(vocab):
+        fixed_labels = [spacy.tokens.span.Span(doc, s.start, s.end, mapped_label(s.label_)) for s in doc.ents]
+        doc.set_ents(fixed_labels)
+        fixed_docs.append(doc)
+    return spacy.tokens.DocBin(docs=fixed_docs)
+
+def load_n2c2_2014() -> spacy.tokens.DocBin:
+    return
 
 def load_docbin(dataset_path: str) -> spacy.tokens.DocBin:
     logging.debug(f'Loading dataset from path: {dataset_path}')
     return spacy.tokens.DocBin().from_disk(dataset_path)
 
-def load_dataset(dataset_name: str) -> spacy.tokens.DocBin:
+def load_dataset(dataset_name: str, vocab) -> spacy.tokens.DocBin:
     if dataset_name == 'norsynthclinical':
-        return load_norsynth()
+        return load_norsynth(vocab)
+    elif dataset_name == 'n2c2-2014':
+        return load_n2c2_2014()
     
     if os.path.exists(dataset_name) and dataset_name.endswith('.spacy'):
         return load_docbin(dataset_name)
