@@ -28,6 +28,8 @@ Enclose dates and times with <Date> tags.
 Do not use any tags which were not specified above.
 """
 
+EXPECTED_TAGS = ['First_Name', 'Last_Name', 'Location', 'Health_Care_Unit', 'Age', 'Phone_Number', 'Social_Security_Number', 'Date']
+
 # _ENCLOSED_IN_TAGS matches on expressions with XML-style tags (e.g. '<Age>23</Age>')
 # putting the tag name in the first capturing group, and the contents in the second
 # capturing group.
@@ -54,6 +56,8 @@ def list_annotations(annotated: str) -> List[Tuple[int, int, str]]:
         tag_start = match.span()[0] - markup_offset
         tag_end = match.span()[1] - markup_offset - total_markup_chars
         markup_offset += total_markup_chars
+        if tag_name not in EXPECTED_TAGS:
+            continue
         annotations.append((tag_start, tag_end, tag_name))
     return annotations
 
