@@ -9,7 +9,7 @@ spec:
       - name: nordeid-evaluation
         image: "jlu015/nordeid-evaluation"
         workingDir: /experiment/
-        command: ["python3", "eval.py", "--dataset", "/storage/norsynth/reference_standard_annotated.spacy"]
+        command: ["python3", "eval.py", "--dataset", "/storage/norsynth/reference_standard_annotated.spacy", "--model", "hf-transformer", "--modelName", "/storage/nb-gpt-j-6B-alpaca/"]
         volumeMounts:
         - name: storage
           mountPath: /storage
