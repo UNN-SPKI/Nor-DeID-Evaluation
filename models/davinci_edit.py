@@ -22,7 +22,7 @@ Georg Nordmann er 47 år gammel og innlagt på Haukeland siden 3. april . Georgs
 Result:
 <First_Name>Georg</First_Name> <Last_Name>Nordmann</Last_Name> er <Age>47 år gammel</Age> og innlagt på <Location>Haukeland</Location> siden <Date>3. april</Date> . <First_Name>Georgs</First_Name> kone <First_Name>Åshild</First_Name> ønsker at vi ringer henne på telefon <Phone_Number>770 12345</Phone_Number> når vi vet mer ."""
 
-ANNOTATION_PROMPT = """Annotate the following clinical note with XML-style tags.
+ANNOTATION_PROMPT = """Anonymize the following clinical note with tags.
 Enclose first names with <First_Name> tags. 
 Enclose last names with <Last_Name> tags.
 Enclose any strings that might be a location or address, such as "Åssiden 31" with <Location> tags. 

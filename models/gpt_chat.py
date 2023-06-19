@@ -15,8 +15,7 @@ from joblib import Memory
 
 CACHE_DIRECTORY = '.cache'
 
-SYSTEM_INSTRUCTION = """
-Annotate the following clinical notes with XML-style tags.
+SYSTEM_INSTRUCTION = """Anonymize the following clinical note with tags.
 Enclose first names with <First_Name> tags. 
 Enclose last names with <Last_Name> tags.
 Enclose any strings that might be a location or address, such as "Åssiden 31" with <Location> tags. 
