@@ -1,9 +1,13 @@
 #!/usr/bin/env python3
 
+import time
 import os
-import spacy
 import logging
+import json
+
 from tap import Tap
+import spacy
+import spacy.scorer
 
 import models.dummy
 import models.davinci_edit
@@ -21,7 +25,7 @@ class ExperimentArguments(Tap):
 
 def main(args: ExperimentArguments):
     logging.debug(f'Loading pipeline {args.spacyPipeline}')
-    nlp = spacy.load(args.spacyPipeline)
+    nlp = spacy.load(args.spacyPipeline, enable=['ner'])
     
     logging.debug(f'Loading model {args.model}')
     model = load_model(args.model, args)
@@ -33,7 +37,8 @@ def main(args: ExperimentArguments):
     answers = model.predict(doc_bin, nlp)
 
     print(f"Results for model {args.model} on dataset {args.dataset}:")
-    evaluation = nlp.evaluate(answers)
+    scorer = spacy.scorer.Scorer(nlp)
+    evaluation = scorer.score(answers)
     print(evaluation)
 
 def load_model(model_name: str, args: ExperimentArguments):
