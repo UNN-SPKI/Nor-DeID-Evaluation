@@ -15,6 +15,7 @@ Create a virtual environment and install the dependencies with:
 $ python -m venv venv
 $ venv/Scripts/activate
 (venv) $ pip install -r requirements.txt
+(venv) $ python -m spacy download en_core_news_sm
 (venv) $ python -m spacy download nb_core_news_sm
 ```
 
