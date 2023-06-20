@@ -33,6 +33,9 @@ def main(args: ExperimentArguments):
 
     logging.debug(f'Loading dataset {args.dataset}')
     doc_bin = load_dataset(args.dataset, nlp.vocab)
+
+    if args.dataset in ['n2c2-2006', 'n2c2-2014'] and args.model in ['gpt-turbo-chat', 'davinci-edit']:
+        raise ValueError("The N2C2 datasets cannot be shared with third parties.")
     
     logging.debug(f'Predicting...')
     answers = model.predict(doc_bin, nlp)
