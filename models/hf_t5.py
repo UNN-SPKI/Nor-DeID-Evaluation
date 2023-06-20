@@ -1,6 +1,6 @@
 """
 hf_transformer is a wrapper around HuggingFace's Transformer library,
-loading a specified model which implements AutoModelForCausalLM
+loading a specified model which implements 
 (e.g. )
 """
 
@@ -17,34 +17,24 @@ from models.utilities.alignment import fix_orthography
 from models.utilities.tags import list_annotations
 
 ANNOTATION_PROMPT = """
-Annotate the following clinical notes with XML-style tags.
-Enclose first names with <First_Name> tags. 
-Enclose last names with <Last_Name> tags.
-Enclose any strings that might be a location or address, such as "Åssiden 31" with <Location> tags. 
-Enclose clinical and hospital names with <Location> tags. 
-Enclose the patient's age and any texts that look like "X år gammel" with <Age> tags. 
-Enclose phone numbers with <Phone_Number> tags.
-Enclose 8 digit long numbers with <Phone_Number> tags. 
-Enclose social security numbers with <Social_Security_Number> tags.
-Enclose 11 digit long numbers with <Social_Security_Number> tags. 
-Enclose dates and times with <Date> tags.
-Do not use any tags which were not specified above.
+What are the first names in the following sentence?
 """
 
 EXPECTED_TAGS = ['First_Name', 'Last_Name', 'Location', 'Health_Care_Unit', 'Age', 'Phone_Number', 'Social_Security_Number', 'Date']
 
-class HFTransformerModel:
+class HFT5Model:
     def __init__(self, model_name: str):
         self.model_name = model_name
-        self.tokenizer = transformers.AutoTokenizer.from_pretrained(pretrained_model_name_or_path=model_name)
+        self.tokenizer = transformers.T5Tokenizer.from_pretrained(pretrained_model_name_or_path=model_name)
         config = transformers.AutoConfig.from_pretrained(model_name)
-        with accelerate.init_empty_weights():
-           self.model = transformers.AutoModelForCausalLM.from_config(config)
+        self.model = transformers.T5ForConditionalGeneration(config)
+        # with accelerate.init_empty_weights():
+        #    self.model = transformers.T5ForConditionalGeneration(config)
         
-        self.model.tie_weights()
-        accelerate.load_checkpoint_and_dispatch(
-            self.model, model_name, device_map="auto", no_split_module_classes=["GPTJBlock"]
-        )
+        # self.model.tie_weights()
+        # accelerate.load_checkpoint_and_dispatch(
+        #     self.model, model_name, device_map="auto", no_split_module_classes=["GPTJBlock"]
+        # )
     
     def predict(self, doc_bin: spacy.tokens.DocBin, language: spacy.Language) -> List[spacy.training.Example]:
         examples = []
@@ -74,7 +64,7 @@ class HFTransformerModel:
 
 ### Respons:"""
         inputs = self.tokenizer(ANNOTATION_TASK, return_tensors="pt")
-        input_ids = inputs["input_ids"].cuda()
+        input_ids = inputs["input_ids"]
         generation_output = self.model.generate(
             input_ids=input_ids,
             generation_config=transformers.GenerationConfig(temperature=0.01, top_p=0.05, num_beams=1),

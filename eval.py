@@ -13,6 +13,7 @@ import models.dummy
 import models.davinci_edit
 import models.gpt_chat
 import models.hf_transformer
+import models.hf_t5
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -50,6 +51,8 @@ def load_model(model_name: str, args: ExperimentArguments):
         return models.gpt_chat.GptChatModel(args.openAIKey)
     elif model_name == 'hf-transformer':
         return models.hf_transformer.HFTransformerModel(args.modelName)
+    elif model_name == 'hf-t5':
+        return models.hf_t5.HFT5Model(args.modelName)
     else:
         raise KeyError(f'Cannot find model {model_name}')
 
