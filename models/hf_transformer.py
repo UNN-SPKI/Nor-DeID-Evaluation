@@ -13,6 +13,9 @@ import spacy
 import transformers
 import accelerate
 
+from models.utilities.alignment import fix_orthography
+from models.utilities.tags import list_annotations
+
 ANNOTATION_PROMPT = """
 Annotate the following clinical notes with XML-style tags.
 Enclose first names with <First_Name> tags. 
