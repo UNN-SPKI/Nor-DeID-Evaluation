@@ -79,7 +79,7 @@ class DavinciEditModel:
                 logging.warning("Misaligned text!")
                 logging.warning(f"ORIGINAL: {doc.text}")
                 logging.warning(f"RETURNED: {remove_tags(prediction)}")
-            annotations = {'entities': list_annotations(prediction)}
+            annotations = {'entities': list_annotations(prediction, EXPECTED_TAGS)}
             logging.debug(f"Annotations: {annotations}")
 
             example = spacy.training.Example.from_dict(doc, annotations)
