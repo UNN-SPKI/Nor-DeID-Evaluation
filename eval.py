@@ -15,6 +15,8 @@ import models.gpt_chat
 import models.hf_transformer
 import models.hf_t5
 
+import datasets.loaders.n2c2
+
 logging.basicConfig(level=logging.DEBUG)
 
 class ExperimentArguments(Tap):
@@ -32,7 +34,7 @@ def main(args: ExperimentArguments):
     model = load_model(args.model, args)
 
     logging.debug(f'Loading dataset {args.dataset}')
-    doc_bin = load_dataset(args.dataset, nlp.vocab)
+    doc_bin = load_dataset(args.dataset, nlp)
 
     if args.dataset in ['n2c2-2006', 'n2c2-2014'] and args.model in ['gpt-turbo-chat', 'davinci-edit']:
         raise ValueError("The N2C2 datasets cannot be shared with third parties.")
@@ -84,18 +86,15 @@ def load_norsynth(vocab) -> spacy.tokens.DocBin:
         fixed_docs.append(doc)
     return spacy.tokens.DocBin(docs=fixed_docs)
 
-def load_n2c2_2014() -> spacy.tokens.DocBin:
-    return
-
 def load_docbin(dataset_path: str) -> spacy.tokens.DocBin:
     logging.debug(f'Loading dataset from path: {dataset_path}')
     return spacy.tokens.DocBin().from_disk(dataset_path)
 
-def load_dataset(dataset_name: str, vocab) -> spacy.tokens.DocBin:
+def load_dataset(dataset_name: str, nlp: spacy.language.Language) -> spacy.tokens.DocBin:
     if dataset_name == 'norsynthclinical':
-        return load_norsynth(vocab)
-    elif dataset_name == 'n2c2-2014':
-        return load_n2c2_2014()
+        return load_norsynth(nlp.vocab)
+    elif dataset_name == 'n2c2-2006':
+        return datasets.loaders.n2c2.load_2006(nlp)
     
     if os.path.exists(dataset_name) and dataset_name.endswith('.spacy'):
         return load_docbin(dataset_name)
