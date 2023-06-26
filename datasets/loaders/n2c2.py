@@ -76,3 +76,44 @@ def load_2006_from_file(path: pathlib.Path, nlp: spacy.language.Language) -> spa
         doc.set_ents(ents)
         doc_bin.add(doc)
     return doc_bin
+
+def load_2014(nlp: spacy.language.Language, directory: str = 'datasets/n2c2/2014/', split: Literal['train', 'test'] = 'test') -> spacy.tokens.DocBin:
+    if split == 'test':
+        test_set_path = pathlib.Path(directory) / 'testing-PHI-Gold-fixed/'
+        return _load_2014_from_folder(test_set_path, nlp)
+    elif split == 'train':
+        train_set1_path = pathlib.Path(directory) / 'training-PHI-Gold-Set1/'
+        set1 = _load_2014_from_folder(train_set1_path, nlp)
+        train_set2_path = pathlib.Path(directory) / 'training-PHI-Gold-Set2/'
+        set2 = _load_2014_from_folder(train_set2_path, nlp)
+        set1.merge(set2)
+        return set1
+    else:
+        raise ValueError(f"Unknown dataset split '{split}' in n2c2 2014")
+
+def _load_2014_from_folder(path: pathlib.Path, nlp: spacy.language.Language) -> spacy.tokens.DocBin:
+    docs = spacy.tokens.DocBin()
+    for doc_path in os.listdir(path):
+        if not doc_path.endswith('.xml'):
+            continue
+        full_path = path / doc_path
+        new_doc = _load_2014_from_document(full_path, nlp)
+        docs.add(new_doc)
+    return docs
+
+def _load_2014_from_document(path: pathlib.Path, nlp: spacy.language.Language):
+    xml_tree = ET.parse(path)
+    root = xml_tree.getroot()
+    text = root.find('TEXT').text
+    doc = nlp.make_doc(text)
+    tags = root.find('TAGS')
+    spans = []
+    for elem in tags.iter():
+        if elem.tag == 'TAGS':
+            continue
+        # TODO: How do we handle the case where dates are only partly covered?
+        span = doc.char_span(int(elem.attrib['start']), int(elem.attrib['end']), label=elem.attrib['TYPE'])
+        if span is not None:
+            spans.append(span)
+    doc.set_ents(spans)
+    return doc

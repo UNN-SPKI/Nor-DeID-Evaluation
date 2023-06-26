@@ -95,6 +95,8 @@ def load_dataset(dataset_name: str, nlp: spacy.language.Language) -> spacy.token
         return load_norsynth(nlp.vocab)
     elif dataset_name == 'n2c2-2006':
         return datasets.loaders.n2c2.load_2006(nlp)
+    elif dataset_name == 'n2c2-2014':
+        return datasets.loaders.n2c2.load_2014(nlp)
     
     if os.path.exists(dataset_name) and dataset_name.endswith('.spacy'):
         return load_docbin(dataset_name)
