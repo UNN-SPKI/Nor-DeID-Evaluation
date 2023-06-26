@@ -10,6 +10,15 @@ from tap import Tap
 import spacy
 import spacy.scorer
 
+<<<<<<< HEAD
+=======
+import models.dummy
+import models.davinci_edit
+import models.gpt_chat
+import models.hf_transformer
+import models.hf_t5
+import models.brathen
+>>>>>>> 9c44a8b (Set up default Norwegian spaCy model)
 
 import datasets.loaders.n2c2
 import datasets.loaders.norsynth
@@ -92,6 +101,7 @@ def load_model(model_name: str, prompt: str, args: ExperimentArguments):
         import models.hf_transformer
         return models.hf_transformer.HFTransformerModel(prompt, args.modelName)
     elif model_name == 'hf-t5':
+<<<<<<< HEAD
         import models.hf_t5
         return models.hf_t5.HFT5Model(prompt, args.modelName)
     elif model_name == 'replicate':
@@ -100,6 +110,41 @@ def load_model(model_name: str, prompt: str, args: ExperimentArguments):
     else:
         raise KeyError(f'Cannot find model {model_name}')
 
+=======
+        return models.hf_t5.HFT5Model(args.modelName)
+    elif model_name == 'brathen':
+        return models.brathen.BrathenModel()
+    else:
+        raise KeyError(f'Cannot find model {model_name}')
+
+def load_norsynth(vocab) -> spacy.tokens.DocBin:
+    logging.debug(f'Converting CoNLL to SpaCy...')
+    if not os.path.exists('tmp/norsynth/reference_standard_annotated.spacy'):
+        os.makedirs('tmp/norsynth/', exist_ok=True)
+        spacy.cli.convert(
+            'datasets/NorSynthClinical-PHI/reference_standard_annotated.conll',
+            'tmp/norsynth/',
+            converter="conll",
+            file_type="spacy")
+    
+    logging.debug(f'Retrieving NorSynthClinical-PHI...')
+    examples = spacy.tokens.DocBin().from_disk('tmp/norsynth/reference_standard_annotated.spacy')
+    map_categories = {
+        'First_Name': 'Name',
+        'Last_Name': 'Name',
+        'Date_Part': 'Date',
+        'Date_Full': 'Date',
+        'Health_Care_Unit': 'Location'
+    }
+    mapped_label = lambda l: map_categories[l] if l in map_categories else l
+    fixed_docs = []
+    for doc in examples.get_docs(vocab):
+        fixed_labels = [spacy.tokens.span.Span(doc, s.start, s.end, mapped_label(s.label_)) for s in doc.ents]
+        doc.set_ents(fixed_labels)
+        fixed_docs.append(doc)
+    return spacy.tokens.DocBin(docs=fixed_docs)
+
+>>>>>>> 9c44a8b (Set up default Norwegian spaCy model)
 def load_docbin(dataset_path: str) -> spacy.tokens.DocBin:
     logging.debug(f'Loading dataset from path: {dataset_path}')
     return spacy.tokens.DocBin().from_disk(dataset_path)
