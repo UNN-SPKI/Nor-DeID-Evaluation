@@ -4,16 +4,15 @@ import spacy
 class BrathenModel:
     """BrathenModel implements spaCy's default NER model with class-specific entity rules."""
     def __init__(self):
-        pass
+        # We don't want to change the spaCy pipeline passed to us, 
+        # so just make a new one:
+        self.language = spacy.load('nb_core_news_lg')
     
     def predict(self, doc_bin: spacy.tokens.DocBin, language: spacy.Language) -> List[spacy.training.Example]:
-        # We don't want to taint the spaCy pipeline passed to us, 
-        # so just make a new one:
-        new_lang = spacy.load('nb_core_news_lg')
         examples = []
         for ref in doc_bin.get_docs(language.vocab):
             new_doc = ref.text
-            results = new_lang(new_doc)
+            results = self.language(new_doc)
 
             map_categories = {
                 'PER': 'Name',
