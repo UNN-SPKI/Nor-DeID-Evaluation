@@ -10,16 +10,6 @@ from tap import Tap
 import spacy
 import spacy.scorer
 
-<<<<<<< HEAD
-=======
-import models.dummy
-import models.davinci_edit
-import models.gpt_chat
-import models.hf_transformer
-import models.hf_t5
-import models.brathen
->>>>>>> 9c44a8b (Set up default Norwegian spaCy model)
-
 import datasets.loaders.n2c2
 import datasets.loaders.norsynth
 
@@ -101,19 +91,14 @@ def load_model(model_name: str, prompt: str, args: ExperimentArguments):
         import models.hf_transformer
         return models.hf_transformer.HFTransformerModel(prompt, args.modelName)
     elif model_name == 'hf-t5':
-<<<<<<< HEAD
         import models.hf_t5
         return models.hf_t5.HFT5Model(prompt, args.modelName)
     elif model_name == 'replicate':
         import models.replicate
         return models.replicate.ReplicateChatModel(args.modelName, prompt)
-    else:
-        raise KeyError(f'Cannot find model {model_name}')
-
-=======
-        return models.hf_t5.HFT5Model(args.modelName)
-    elif model_name == 'brathen':
-        return models.brathen.BrathenModel()
+    elif model_name == 'spacy':
+        import models.spacy
+        return models.spacy.SpacyModel()
     else:
         raise KeyError(f'Cannot find model {model_name}')
 
@@ -144,7 +129,6 @@ def load_norsynth(vocab) -> spacy.tokens.DocBin:
         fixed_docs.append(doc)
     return spacy.tokens.DocBin(docs=fixed_docs)
 
->>>>>>> 9c44a8b (Set up default Norwegian spaCy model)
 def load_docbin(dataset_path: str) -> spacy.tokens.DocBin:
     logging.debug(f'Loading dataset from path: {dataset_path}')
     return spacy.tokens.DocBin().from_disk(dataset_path)

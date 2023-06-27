@@ -1,8 +1,9 @@
-from typing import List
+from typing import Dict, List
 import spacy
 
-class BrathenModel:
-    """BrathenModel implements spaCy's default NER model with class-specific entity rules."""
+class SpacyModel:
+    """SpacyModel implements a default spaCy EntityRecognizer and EntityRuler, allowing
+    custom class."""
     def __init__(self):
         # We don't want to change the spaCy pipeline passed to us, 
         # so just make a new one:
