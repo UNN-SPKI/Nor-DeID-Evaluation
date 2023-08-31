@@ -1,0 +1,18 @@
+Anonymize the following clinical note with tags.
+Replace first names with <First_Name> tags. 
+Replace last names with <Last_Name> tags.
+Replace any strings that might be a location or address, such as "Åssiden 31" with <Location> tags. 
+Replace clinical and hospital names with <Location> tags. 
+Replace the patient's age and any texts that look like "X år gammel" with <Age> tags. 
+Replace phone numbers with <Phone_Number> tags.
+Replace 8 digit long numbers with <Phone_Number> tags. 
+Replace social security numbers with <Social_Security_Number> tags.
+Replace 11 digit long numbers with <Social_Security_Number> tags. 
+Replace dates and times with <Date> tags.
+Do not use any tags which were not specified above.
+
+Example:
+Georg Nordmann er 47 år gammel og innlagt på Haukeland siden 3. april . Georgs kone Åshild ønsker at vi ringer henne på telefon 770 12345 når vi vet mer .
+
+Result:
+<First_Name> <Last_Name> er <Age> og innlagt på <Location> siden <Date> . <First_Name> kone <First_Name> ønsker at vi ringer henne på telefon <Phone_Number> når vi vet mer .
