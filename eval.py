@@ -4,6 +4,7 @@ import time
 import os
 import logging
 import json
+from typing import Literal
 
 from tap import Tap
 import spacy
@@ -21,18 +22,31 @@ import datasets.loaders.norsynth
 logging.basicConfig(level=logging.DEBUG)
 
 class ExperimentArguments(Tap):
-    dataset: str = 'norsynthclinical' # The identifier of the dataset to use (see load_dataset in eval.py)
-    model: str = 'dummy' # The identifier of the model to use (see load_model in eval.py)
-    modelName: str = 'NbAiLab/nb-gpt-j-6B-alpaca' # For models which expect a path, load the model here
-    spacyPipeline: str = 'nb_core_news_sm' # The SpaCy Language to use for tokenization
-    openAIKey: str = 'OPENAI_KEY_HERE' # OpenAI key for comparison models
+    prompt_path: str
+    """Path to the prompt template to use.""" 
+    mode: Literal['replace', 'annotate']
+    """Which setting to evaluate the method in."""
+    dataset: str = 'norsynthclinical'
+    """Which dataset loader to use. (see load_dataset in eval.py)"""
+    model: str = 'dummy'
+    """The model type to use (see load_model in eval.py)"""
+    modelName: str = 'NbAiLab/nb-gpt-j-6B-alpaca'
+    """The identifier/path to the model"""
+    spacyPipeline: str = 'nb_core_news_sm'
+    """The SpaCy Language to use for tokenization"""
+    openAIKey: str = 'OPENAI_KEY_HERE'
+    """OpenAI key for comparison models"""
 
 def main(args: ExperimentArguments):
+    with open(args.prompt_path, 'r', encoding="utf-8") as prompt_file:
+        logging.debug(f'Using prompt {args.prompt_path}')
+        prompt = prompt_file.read()
+
     logging.debug(f'Loading pipeline {args.spacyPipeline}')
     nlp = spacy.load(args.spacyPipeline, enable=['ner'])
     
     logging.debug(f'Loading model {args.model}')
-    model = load_model(args.model, args)
+    model = load_model(args.model, prompt, args)
 
     logging.debug(f'Loading dataset {args.dataset}')
     doc_bin = load_dataset(args.dataset, nlp)
@@ -48,17 +62,17 @@ def main(args: ExperimentArguments):
     evaluation = scorer.score(answers)
     print(evaluation)
 
-def load_model(model_name: str, args: ExperimentArguments):
+def load_model(model_name: str, prompt: str, args: ExperimentArguments):
     if model_name == 'dummy':
         return models.dummy.DummyModel()
     elif model_name == 'davinci-edit':
-        return models.davinci_edit.DavinciEditModel(args.openAIKey)
-    elif model_name == 'gpt-turbo-chat':
-        return models.gpt_chat.GptChatModel(args.openAIKey)
+        return models.davinci_edit.DavinciEditModel(prompt, args.openAIKey)
+    elif model_name == 'gpt-chat':
+        return models.gpt_chat.GptChatModel(prompt, args.modelName, args.openAIKey)
     elif model_name == 'hf-transformer':
-        return models.hf_transformer.HFTransformerModel(args.modelName)
+        return models.hf_transformer.HFTransformerModel(prompt, args.modelName)
     elif model_name == 'hf-t5':
-        return models.hf_t5.HFT5Model(args.modelName)
+        return models.hf_t5.HFT5Model(prompt, args.modelName)
     else:
         raise KeyError(f'Cannot find model {model_name}')
 

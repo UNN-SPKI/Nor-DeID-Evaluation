@@ -33,20 +33,20 @@ Do not use any tags which were not specified above.
 
 EXPECTED_TAGS = ['First_Name', 'Last_Name', 'Location', 'Health_Care_Unit', 'Age', 'Phone_Number', 'Social_Security_Number', 'Date']
 
-def get_chat_completion(source, openAIAPIKey, temperature, rate_limit = None):
+def get_chat_completion(prompt, source, model, openAIAPIKey, temperature, rate_limit = None):
     if rate_limit:
         time.sleep(rate_limit)
     prologue = [
-        {'role': 'system', 'content': SYSTEM_INSTRUCTION},
-        {'role': 'user', 'content': 'Input: Georg Nordmann er 47 år gammel og innlagt på Haukeland siden 3. april . Georgs kone Åshild ønsker at vi ringer henne på telefon 770 12345 når vi vet mer .: '},
-        {'role': 'assistant', 'content': '<First_Name>Georg</First_Name> <Last_Name>Nordmann</Last_Name> er <Age>47 år gammel</Age> og innlagt på <Location>Haukeland</Location> siden <Date>3. april</Date> . <First_Name>Georgs</First_Name> kone <First_Name>Åshild</First_Name> ønsker at vi ringer henne på telefon <Phone_Number>770 12345</Phone_Number> når vi vet mer .'},
+        {'role': 'system', 'content': prompt}
+        # {'role': 'user', 'content': 'Input: Georg Nordmann er 47 år gammel og innlagt på Haukeland siden 3. april . Georgs kone Åshild ønsker at vi ringer henne på telefon 770 12345 når vi vet mer .: '},
+        # {'role': 'assistant', 'content': '<First_Name>Georg</First_Name> <Last_Name>Nordmann</Last_Name> er <Age>47 år gammel</Age> og innlagt på <Location>Haukeland</Location> siden <Date>3. april</Date> . <First_Name>Georgs</First_Name> kone <First_Name>Åshild</First_Name> ønsker at vi ringer henne på telefon <Phone_Number>770 12345</Phone_Number> når vi vet mer .'},
     ]
     messages = prologue + [{
         'role': 'user', 'content': 'Input: ' + source
     }]
     r = requests.post('https://api.openai.com/v1/chat/completions',
                       json={
-                          'model': 'gpt-3.5-turbo',
+                          'model': model,
                           'messages': messages,
                           'temperature': temperature
                       },
@@ -65,7 +65,9 @@ def fix_orthography(answer: str) -> str:
     return single_spaces
 
 class GptChatModel:
-    def __init__(self, openAIAPIKey, rate_limit=2, retries=5):
+    def __init__(self, prompt, model, openAIAPIKey, rate_limit=2, retries=5):
+        self._model = model
+        self._prompt = prompt
         self._openAIAPIKey = openAIAPIKey
         self._rate_limit = rate_limit
         self._retries = retries
@@ -93,7 +95,7 @@ class GptChatModel:
         temperature = 0.0
         while tries < self._retries:
             get_cached_completion = self._memory.cache(get_chat_completion)
-            response = get_cached_completion(source, self._openAIAPIKey, temperature, self._rate_limit)
+            response = get_cached_completion(self._prompt, source, self._model, self._openAIAPIKey, temperature, self._rate_limit)
             if 'choices' not in response:
                 logging.error(
                     "Unexpected answer from OpenAI - could not find \'choices\'")

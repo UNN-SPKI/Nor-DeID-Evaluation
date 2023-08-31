@@ -18,27 +18,6 @@ from models.utilities.tags import list_annotations, remove_tags
 
 CACHE_DIRECTORY = '.cache'
 
-USE_EXAMPLE = False
-EXAMPLE = """Example:
-Georg Nordmann er 47 år gammel og innlagt på Haukeland siden 3. april . Georgs kone Åshild ønsker at vi ringer henne på telefon 770 12345 når vi vet mer .
-
-Result:
-<First_Name>Georg</First_Name> <Last_Name>Nordmann</Last_Name> er <Age>47 år gammel</Age> og innlagt på <Location>Haukeland</Location> siden <Date>3. april</Date> . <First_Name>Georgs</First_Name> kone <First_Name>Åshild</First_Name> ønsker at vi ringer henne på telefon <Phone_Number>770 12345</Phone_Number> når vi vet mer ."""
-
-ANNOTATION_PROMPT = """Anonymize the following clinical note with tags.
-Enclose first names with <First_Name> tags. 
-Enclose last names with <Last_Name> tags.
-Enclose any strings that might be a location or address, such as "Åssiden 31" with <Location> tags. 
-Enclose clinical and hospital names with <Location> tags. 
-Enclose the patient's age and any texts that look like "X år gammel" with <Age> tags. 
-Enclose phone numbers with <Phone_Number> tags.
-Enclose 8 digit long numbers with <Phone_Number> tags. 
-Enclose social security numbers with <Social_Security_Number> tags.
-Enclose 11 digit long numbers with <Social_Security_Number> tags. 
-Enclose dates and times with <Date> tags.
-Do not use any tags which were not specified above.
-""" + (EXAMPLE if USE_EXAMPLE else "")
-
 EXPECTED_TAGS = ['First_Name', 'Last_Name', 'Location', 'Health_Care_Unit', 'Age', 'Phone_Number', 'Social_Security_Number', 'Date']
 
 def get_completion(source, instruction, openAIAPIKey, temperature, rate_limit = None):
@@ -63,7 +42,8 @@ def get_completion(source, instruction, openAIAPIKey, temperature, rate_limit = 
 
 
 class DavinciEditModel:
-    def __init__(self, openAIAPIKey, rate_limit = 2, retries = 5):
+    def __init__(self, prompt, openAIAPIKey, rate_limit = 2, retries = 5):
+        self._prompt = prompt
         self._openAIAPIKey = openAIAPIKey
         self._rate_limit = rate_limit
         self._retries = retries
@@ -89,7 +69,7 @@ class DavinciEditModel:
     def predict_task(self, source: str) -> str:
         tries = 0
         temperature = 0.0 
-        instruction = ANNOTATION_PROMPT
+        instruction = self._prompt
         while tries < self._retries:
             get_cached_completion = self._memory.cache(get_completion)
             response = get_cached_completion(source, instruction, self._openAIAPIKey, temperature, self._rate_limit)
