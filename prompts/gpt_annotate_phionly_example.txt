@@ -1,0 +1,18 @@
+Anonymize the following clinical note with tags.
+Enclose first names with <PHI> tags. 
+Enclose last names with <PHI> tags.
+Enclose any strings that might be a location or address, such as "Åssiden 31" with <PHI> tags. 
+Enclose clinical and hospital names with <PHI> tags. 
+Enclose the patient's age and any texts that look like "X år gammel" with <PHI> tags. 
+Enclose phone numbers with <PHI> tags.
+Enclose 8 digit long numbers with <PHI> tags. 
+Enclose social security numbers with <PHI> tags.
+Enclose 11 digit long numbers with <PHI> tags. 
+Enclose dates and times with <PHI> tags.
+Do not use any tags which were not specified above.
+
+Example:
+Georg Nordmann er 47 år gammel og innlagt på Haukeland siden 3. april . Georgs kone Åshild ønsker at vi ringer henne på telefon 770 12345 når vi vet mer .
+
+Result:
+<PHI>Georg</PHI> <PHI>Nordmann</PHI> er <PHI>47 år gammel</PHI> og innlagt på <PHI>Haukeland</PHI> siden <PHI>3. april</PHI> . <PHI>Georgs</PHI> kone <PHI>Åshild</PHI> ønsker at vi ringer henne på telefon <PHI>770 12345</PHI> når vi vet mer .

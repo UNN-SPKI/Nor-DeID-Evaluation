@@ -36,6 +36,8 @@ class ExperimentArguments(Tap):
     """The SpaCy Language to use for tokenization"""
     openAIKey: str = 'OPENAI_KEY_HERE'
     """OpenAI key for comparison models"""
+    singleClass: bool = False
+    """Whether to force all entities into a single 'PHI' class"""
 
 def main(args: ExperimentArguments):
     with open(args.prompt_path, 'r', encoding="utf-8") as prompt_file:
@@ -50,6 +52,9 @@ def main(args: ExperimentArguments):
 
     logging.debug(f'Loading dataset {args.dataset}')
     doc_bin = load_dataset(args.dataset, nlp)
+    if args.singleClass:
+        logging.debug('Setting all labels to \'PHI\'')
+        doc_bin = _all_ents_to_label(doc_bin, nlp, 'PHI')
 
     if args.dataset in ['n2c2-2006', 'n2c2-2014'] and args.model in ['gpt-turbo-chat', 'davinci-edit']:
         raise ValueError("The N2C2 datasets cannot be shared with third parties.")
@@ -79,6 +84,14 @@ def load_model(model_name: str, prompt: str, args: ExperimentArguments):
 def load_docbin(dataset_path: str) -> spacy.tokens.DocBin:
     logging.debug(f'Loading dataset from path: {dataset_path}')
     return spacy.tokens.DocBin().from_disk(dataset_path)
+
+def _all_ents_to_label(docs: spacy.tokens.DocBin, nlp: spacy.language.Language, label: str = 'PHI') -> spacy.tokens.DocBin:
+    fixed_docs = []
+    for doc in docs.get_docs(nlp.vocab):
+        fixed_labels = [spacy.tokens.span.Span(doc, s.start, s.end, 'PHI') for s in doc.ents]
+        doc.set_ents(fixed_labels)
+        fixed_docs.append(doc)
+    return spacy.tokens.DocBin(docs=fixed_docs)
 
 def load_dataset(dataset_name: str, nlp: spacy.language.Language) -> spacy.tokens.DocBin:
     if dataset_name == 'norsynthclinical':
