@@ -10,11 +10,6 @@ from tap import Tap
 import spacy
 import spacy.scorer
 
-import models.dummy
-import models.davinci_edit
-import models.gpt_chat
-import models.hf_transformer
-import models.hf_t5
 
 import datasets.loaders.n2c2
 import datasets.loaders.norsynth
@@ -64,15 +59,23 @@ def main(args: ExperimentArguments):
 
 def load_model(model_name: str, prompt: str, args: ExperimentArguments):
     if model_name == 'dummy':
+        import models.dummy
         return models.dummy.DummyModel()
     elif model_name == 'davinci-edit':
+        import models.davinci_edit
         return models.davinci_edit.DavinciEditModel(prompt, args.openAIKey)
     elif model_name == 'gpt-chat':
+        import models.gpt_chat
         return models.gpt_chat.GptChatModel(prompt, args.modelName, args.openAIKey)
     elif model_name == 'hf-transformer':
+        import models.hf_transformer
         return models.hf_transformer.HFTransformerModel(prompt, args.modelName)
     elif model_name == 'hf-t5':
+        import models.hf_t5
         return models.hf_t5.HFT5Model(prompt, args.modelName)
+    elif model_name == 'replicate':
+        import models.replicate
+        return models.replicate.ReplicateChatModel(args.modelName, prompt)
     else:
         raise KeyError(f'Cannot find model {model_name}')
 

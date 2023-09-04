@@ -17,21 +17,8 @@ from models.utilities.tags import list_annotations, remove_tags
 
 CACHE_DIRECTORY = '.cache'
 
-SYSTEM_INSTRUCTION = """Anonymize the following clinical note with tags.
-Enclose first names with <First_Name> tags. 
-Enclose last names with <Last_Name> tags.
-Enclose any strings that might be a location or address, such as "Åssiden 31" with <Location> tags. 
-Enclose clinical and hospital names with <Location> tags. 
-Enclose the patient's age and any texts that look like "X år gammel" with <Age> tags. 
-Enclose phone numbers with <Phone_Number> tags.
-Enclose 8 digit long numbers with <Phone_Number> tags. 
-Enclose social security numbers with <Social_Security_Number> tags.
-Enclose 11 digit long numbers with <Social_Security_Number> tags. 
-Enclose dates and times with <Date> tags.
-Do not use any tags which were not specified above.
-"""
-
-EXPECTED_TAGS = ['First_Name', 'Last_Name', 'Location', 'Health_Care_Unit', 'Age', 'Phone_Number', 'Social_Security_Number', 'Date']
+IGNORE_STARTS = ['Input:', 'Output:']
+EXPECTED_TAGS = ['First_Name', 'Last_Name', 'Location', 'Health_Care_Unit', 'Age', 'Phone_Number', 'Social_Security_Number', 'Date', 'PHI']
 
 def get_chat_completion(prompt, source, model, openAIAPIKey, temperature, rate_limit = None):
     if rate_limit:
@@ -78,6 +65,8 @@ class GptChatModel:
         for doc in doc_bin.get_docs(language.vocab):
             logging.debug(f"Task: {doc.text}")
             prediction = self.predict_task(doc.text)
+            if prediction.split()[0] in IGNORE_STARTS:
+                prediction = ' '.join(prediction.split()[1:])
             logging.debug(f"Predicted: {prediction}")
             if remove_tags(prediction) != doc.text.rstrip():
                 logging.warning("Misaligned text!")
