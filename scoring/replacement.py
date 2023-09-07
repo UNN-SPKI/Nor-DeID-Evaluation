@@ -1,4 +1,16 @@
+import spacy
+from typing import List
 import string2string.alignment
+
+class Scorer:
+    def __init__(self, nlp: spacy.Language):
+        self.nlp = nlp
+        return
+
+    def score(self, doc_bin: spacy.tokens.DocBin, answers: List[str]) -> dict:
+        for i, doc in enumerate(doc_bin.get_docs(self.nlp.vocab)):
+            answer = answers[i]
+            return align_answer(doc, answers[i])
 
 def align_answer(source, response, gap_char='-'):
     nw = string2string.alignment.NeedlemanWunsch()

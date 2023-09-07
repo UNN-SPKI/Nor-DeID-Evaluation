@@ -36,7 +36,7 @@ class HFT5Model:
         #     self.model, model_name, device_map="auto", no_split_module_classes=["GPTJBlock"]
         # )
     
-    def predict(self, doc_bin: spacy.tokens.DocBin, language: spacy.Language) -> List[spacy.training.Example]:
+    def predict(self, doc_bin: spacy.tokens.DocBin, language: spacy.Language, mode: str) -> List[spacy.training.Example]:
         examples = []
         for doc in doc_bin.get_docs(language.vocab):
             logging.debug(f"Task: {doc.text}")
