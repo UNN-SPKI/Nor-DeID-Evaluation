@@ -6,7 +6,7 @@ import string2string
 import string2string.alignment
 
 import models.utilities.tags
-import models.utilities.evaluation
+import scoring.replacement
 
 class ReplaceAccuracyTests(unittest.TestCase):
     def setUp(self):
@@ -15,7 +15,7 @@ class ReplaceAccuracyTests(unittest.TestCase):
     def test_no_phi(self):
         source = self.nlp.make_doc("The quick brown fox jumps over the lazy dog")
         target = "The quick brown fox jumps over the lazy dog"
-        results = models.utilities.evaluation.align_answer(source, target)
+        results = scoring.replacement.align_answer(source, target)
 
         self.assertEqual(results['tp'], 0)
         self.assertEqual(results['tn'], 9)
@@ -27,7 +27,7 @@ class ReplaceAccuracyTests(unittest.TestCase):
         ents = [source.char_span(0, 43, "ADJ")]
         source.set_ents(ents)
         target = "<ADJ>"
-        results = models.utilities.evaluation.align_answer(source, target)
+        results = scoring.replacement.align_answer(source, target)
 
         self.assertEqual(results['tp'], 9)
         self.assertEqual(results['tn'], 0)
@@ -40,7 +40,7 @@ class ReplaceAccuracyTests(unittest.TestCase):
         source.set_ents(ents)
         target = "The <ADJ> brown fox jumps over the <ADJ> dog"
 
-        results = models.utilities.evaluation.align_answer(source, target)
+        results = scoring.replacement.align_answer(source, target)
 
         self.assertEqual(results['tp'], 2)
         self.assertEqual(results['tn'], 7)
@@ -51,7 +51,7 @@ class ReplaceAccuracyTests(unittest.TestCase):
         source = self.nlp.make_doc("The quick brown fox jumps over the lazy dog")
         target = "quick brown fox jumps over the lazy"
 
-        results = models.utilities.evaluation.align_answer(source, target)
+        results = scoring.replacement.align_answer(source, target)
 
         self.assertEqual(results['tp'], 0)
         self.assertEqual(results['tn'], 7)
@@ -63,7 +63,7 @@ class ReplaceAccuracyTests(unittest.TestCase):
         source = self.nlp.make_doc("The quick brown fox jumps over the lazy dog")
         target = "Teh quick brown fox jumps over the lazy dgo"
 
-        results = models.utilities.evaluation.align_answer(source, target)
+        results = scoring.replacement.align_answer(source, target)
 
         self.assertEqual(results['tp'], 0)
         self.assertEqual(results['tn'], 7)
@@ -75,7 +75,7 @@ class ReplaceAccuracyTests(unittest.TestCase):
         source = self.nlp.make_doc("The quick brown fox jumps over the lazy dog")
         target = "The quick brown fox jumps over the lazy dog extra"
 
-        results = models.utilities.evaluation.align_answer(source, target)
+        results = scoring.replacement.align_answer(source, target)
 
         self.assertEqual(results['tp'], 0)
         self.assertEqual(results['tn'], 9)
