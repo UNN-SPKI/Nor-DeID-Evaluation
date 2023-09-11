@@ -33,6 +33,8 @@ class ExperimentArguments(Tap):
     """The SpaCy Language to use for tokenization"""
     openAIKey: str = 'OPENAI_KEY_HERE'
     """OpenAI key for comparison models"""
+    output: str = None
+    """Which file to write results to"""
 
 def main(args: ExperimentArguments):
     with open(args.prompt_path, 'r', encoding="utf-8") as prompt_file:
@@ -66,6 +68,10 @@ def main(args: ExperimentArguments):
     else:
         logging.error(f"Unknown mode {args.mode}")
         return
+    
+    if args.output:
+        with open(args.output, 'w', encoding="utf8") as outfile:
+            json.dump(evaluation, outfile)
 
 def load_model(model_name: str, prompt: str, args: ExperimentArguments):
     if model_name == 'dummy':
