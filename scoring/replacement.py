@@ -1,6 +1,7 @@
 import spacy
 from typing import List
 import string2string.alignment
+import collections
 
 class Scorer:
     def __init__(self, nlp: spacy.Language):
@@ -8,12 +9,18 @@ class Scorer:
         return
 
     def score(self, doc_bin: spacy.tokens.DocBin, answers: List[str]) -> dict:
+        total_doc_length = 0
+        ctr = collections.Counter()
         for i, doc in enumerate(doc_bin.get_docs(self.nlp.vocab)):
             answer = answers[i]
-            return align_answer(doc, answers[i])
+            results = align_answer(doc, answer)
+            total_doc_length += len(doc)
+            ctr.update(results)
+        rates = {k: v / total_doc_length for (k, v) in ctr.items()}
+        return rates
 
-def align_answer(source, response, gap_char='-'):
-    nw = string2string.alignment.NeedlemanWunsch()
+def align_answer(source, response, gap_char='~'):
+    nw = string2string.alignment.NeedlemanWunsch(gap_char=gap_char)
     source_split, response_split = str(source).split(), response.split() 
     source_aligned, response_aligned = nw.get_alignment(source_split, response_split)
     source_aligned_elems = [p.strip() for p in source_aligned.split(' | ')]
