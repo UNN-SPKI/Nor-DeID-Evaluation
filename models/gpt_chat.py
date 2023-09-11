@@ -6,7 +6,7 @@ and the redaction and pseudonymization task phrased for the model.
 import logging
 import re
 import time
-from typing import List, Tuple
+from typing import List, Tuple, Union
 
 import requests
 import spacy
@@ -60,7 +60,7 @@ class GptChatModel:
         self._retries = retries
         self._memory = Memory(CACHE_DIRECTORY)
 
-    def predict(self, doc_bin: spacy.tokens.DocBin, language: spacy.Language, mode: str) -> List[spacy.training.Example]:
+    def predict(self, doc_bin: spacy.tokens.DocBin, language: spacy.Language, mode: str) -> Union[List[spacy.training.Example], List[str]]:
         examples = []
         for doc in doc_bin.get_docs(language.vocab):
             logging.debug(f"Task: {doc.text}")
@@ -68,6 +68,11 @@ class GptChatModel:
             if prediction.split()[0] in IGNORE_STARTS:
                 prediction = ' '.join(prediction.split()[1:])
             logging.debug(f"Predicted: {prediction}")
+
+            if mode == 'replace':
+                examples.append(prediction)
+                continue
+            
             if remove_tags(prediction) != doc.text.rstrip():
                 logging.warning("Misaligned text!")
                 logging.warning(f"ORIGINAL: {doc.text}")
