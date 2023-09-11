@@ -60,7 +60,7 @@ class GptChatModel:
         self._retries = retries
         self._memory = Memory(CACHE_DIRECTORY)
 
-    def predict(self, doc_bin: spacy.tokens.DocBin, language: spacy.Language) -> List[spacy.training.Example]:
+    def predict(self, doc_bin: spacy.tokens.DocBin, language: spacy.Language, mode: str) -> List[spacy.training.Example]:
         examples = []
         for doc in doc_bin.get_docs(language.vocab):
             logging.debug(f"Task: {doc.text}")

@@ -14,6 +14,8 @@ import spacy.scorer
 import datasets.loaders.n2c2
 import datasets.loaders.norsynth
 
+import scoring.replacement
+
 logging.basicConfig(level=logging.DEBUG)
 
 class ExperimentArguments(Tap):
@@ -31,6 +33,8 @@ class ExperimentArguments(Tap):
     """The SpaCy Language to use for tokenization"""
     openAIKey: str = 'OPENAI_KEY_HERE'
     """OpenAI key for comparison models"""
+    output: str = None
+    """Which file to write results to"""
 
 def main(args: ExperimentArguments):
     with open(args.prompt_path, 'r', encoding="utf-8") as prompt_file:
@@ -50,12 +54,24 @@ def main(args: ExperimentArguments):
         raise ValueError("The N2C2 datasets cannot be shared with third parties.")
     
     logging.debug(f'Predicting...')
-    answers = model.predict(doc_bin, nlp)
+    answers = model.predict(doc_bin, nlp, args.mode)
 
     print(f"Results for model {args.model} on dataset {args.dataset}:")
-    scorer = spacy.scorer.Scorer(nlp)
-    evaluation = scorer.score(answers)
-    print(evaluation)
+    if args.mode == 'annotate':
+        scorer = spacy.scorer.Scorer(nlp)
+        evaluation = scorer.score(answers)
+        print(evaluation)
+    elif args.mode == 'replace':
+        scorer = scoring.replacement.Scorer(nlp)
+        evaluation = scorer.score(doc_bin, answers)
+        print(evaluation)
+    else:
+        logging.error(f"Unknown mode {args.mode}")
+        return
+    
+    if args.output:
+        with open(args.output, 'w', encoding="utf8") as outfile:
+            json.dump(evaluation, outfile)
 
 def load_model(model_name: str, prompt: str, args: ExperimentArguments):
     if model_name == 'dummy':
