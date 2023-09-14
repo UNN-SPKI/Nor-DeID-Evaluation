@@ -4,7 +4,7 @@ import time
 import os
 import logging
 import json
-from typing import Literal
+from typing import List, Literal
 
 from tap import Tap
 import spacy
@@ -35,6 +35,8 @@ class ExperimentArguments(Tap):
     """OpenAI key for comparison models"""
     output: str = None
     """Which file to write results to"""
+    singleClass: bool = False
+    """Whether all entities should be put in a single PHI class"""
 
 def main(args: ExperimentArguments):
     with open(args.prompt_path, 'r', encoding="utf-8") as prompt_file:
@@ -59,6 +61,9 @@ def main(args: ExperimentArguments):
     print(f"Results for model {args.model} on dataset {args.dataset}:")
     if args.mode == 'annotate':
         scorer = spacy.scorer.Scorer(nlp)
+        if args.singleClass:
+            logging.debug("Putting all entities in the PHI class.")
+            answers = _all_answers_to_label(answers, nlp, 'PHI')
         evaluation = scorer.score(answers)
         print(evaluation)
     elif args.mode == 'replace':
@@ -111,6 +116,18 @@ def load_dataset(dataset_name: str, nlp: spacy.language.Language) -> spacy.token
         return load_docbin(dataset_name)
     
     raise ValueError(f"Could not find dataset identifier and could not find a file at {dataset_name}")
+
+def _all_answers_to_label(answers: List[spacy.training.Example], nlp: spacy.language.Language, label: str = 'PHI') -> List[spacy.training.Example]:
+    fixed_examples = []
+    for answer in answers:
+        
+        fixed_labels = [spacy.tokens.span.Span(answer.reference, s.start, s.end, 'PHI') for s in answer.reference.ents]
+        fixed_prediction = [spacy.tokens.span.Span(answer.predicted, s.start, s.end, 'PHI') for s in answer.predicted.ents]
+        answer.reference.set_ents(fixed_labels)
+        answer.predicted.set_ents(fixed_prediction)
+        example = spacy.training.Example(answer.predicted, answer.reference)
+        fixed_examples.append(example)
+    return fixed_examples
 
 if __name__ == '__main__':
     args = ExperimentArguments().parse_args()

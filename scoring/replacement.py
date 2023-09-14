@@ -17,6 +17,10 @@ class Scorer:
             total_doc_length += len(doc)
             ctr.update(results)
         rates = {k: v / total_doc_length for (k, v) in ctr.items()}
+        
+        rates['precision'] = rates['tp'] / (rates['tp'] + rates['fp'])
+        rates['recall'] = rates['tp'] / (rates['tp'] + rates['fn'])
+        rates['f1'] = 2.0 * (rates['precision'] * rates['recall']) / (rates['precision'] + rates['recall'])
         return rates
 
 def align_answer(source, response, gap_char='~'):
