@@ -12,6 +12,7 @@ import spacy.scorer
 
 import datasets.loaders.n2c2
 import datasets.loaders.norsynth
+import datasets.loaders.synthdeid
 
 import scoring.replacement
 
@@ -102,33 +103,6 @@ def load_model(model_name: str, prompt: str, args: ExperimentArguments):
     else:
         raise KeyError(f'Cannot find model {model_name}')
 
-def load_norsynth(vocab) -> spacy.tokens.DocBin:
-    logging.debug(f'Converting CoNLL to SpaCy...')
-    if not os.path.exists('tmp/norsynth/reference_standard_annotated.spacy'):
-        os.makedirs('tmp/norsynth/', exist_ok=True)
-        spacy.cli.convert(
-            'datasets/NorSynthClinical-PHI/reference_standard_annotated.conll',
-            'tmp/norsynth/',
-            converter="conll",
-            file_type="spacy")
-    
-    logging.debug(f'Retrieving NorSynthClinical-PHI...')
-    examples = spacy.tokens.DocBin().from_disk('tmp/norsynth/reference_standard_annotated.spacy')
-    map_categories = {
-        'First_Name': 'Name',
-        'Last_Name': 'Name',
-        'Date_Part': 'Date',
-        'Date_Full': 'Date',
-        'Health_Care_Unit': 'Location'
-    }
-    mapped_label = lambda l: map_categories[l] if l in map_categories else l
-    fixed_docs = []
-    for doc in examples.get_docs(vocab):
-        fixed_labels = [spacy.tokens.span.Span(doc, s.start, s.end, mapped_label(s.label_)) for s in doc.ents]
-        doc.set_ents(fixed_labels)
-        fixed_docs.append(doc)
-    return spacy.tokens.DocBin(docs=fixed_docs)
-
 def load_docbin(dataset_path: str) -> spacy.tokens.DocBin:
     logging.debug(f'Loading dataset from path: {dataset_path}')
     return spacy.tokens.DocBin().from_disk(dataset_path)
@@ -136,6 +110,8 @@ def load_docbin(dataset_path: str) -> spacy.tokens.DocBin:
 def load_dataset(dataset_name: str, nlp: spacy.language.Language) -> spacy.tokens.DocBin:
     if dataset_name == 'norsynthclinical':
         return datasets.loaders.norsynth.load_norsynth(nlp.vocab)
+    elif dataset_name == 'synthdeid':
+        return datasets.loaders.synthdeid.load_synthdeid(nlp.vocab)
     elif dataset_name == 'n2c2-2006':
         return datasets.loaders.n2c2.load_2006(nlp)
     elif dataset_name == 'n2c2-2014':
