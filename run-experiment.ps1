@@ -1,9 +1,9 @@
-# pipenv run python eval.py --prompt_path prompts/null.txt --mode annotate --dataset norsynthclinical --model spacy --output results/baseline-annotate-norsynth.json
-# pipenv run python eval.py --prompt_path prompts/null.txt --mode annotate --dataset norsynthclinical --model spacy --output results/baseline-annotate-norsynth-single.json --singleClass
-# pipenv run python eval.py --prompt_path prompts/null.txt --mode replace --dataset norsynthclinical --model spacy --output results/baseline-redact-norsynth.json
-# pipenv run python eval.py --prompt_path prompts/null.txt --mode annotate --dataset synthdeid --model spacy --output results/baseline-annotate-synthdata.json
-# pipenv run python eval.py --prompt_path prompts/null.txt --mode annotate --dataset synthdeid --model spacy --output results/baseline-annotate-synthdata-single.json --singleClass
-# pipenv run python eval.py --prompt_path prompts/null.txt --mode replace --dataset synthdeid --model spacy --output results/baseline-redact-synthdata.json
+pipenv run python eval.py --prompt_path prompts/null.txt --mode annotate --dataset norsynthclinical --model spacy --output results/baseline-annotate-norsynth.json
+pipenv run python eval.py --prompt_path prompts/null.txt --mode annotate --dataset norsynthclinical --model spacy --output results/baseline-annotate-norsynth-single.json --singleClass
+pipenv run python eval.py --prompt_path prompts/null.txt --mode replace --dataset norsynthclinical --model spacy --output results/baseline-redact-norsynth.json
+pipenv run python eval.py --prompt_path prompts/null.txt --mode annotate --dataset synthdeid --model spacy --output results/baseline-annotate-synthdata.json
+pipenv run python eval.py --prompt_path prompts/null.txt --mode annotate --dataset synthdeid --model spacy --output results/baseline-annotate-synthdata-single.json --singleClass
+pipenv run python eval.py --prompt_path prompts/null.txt --mode replace --dataset synthdeid --model spacy --output results/baseline-redact-synthdata.json
 pipenv run python eval.py --prompt_path prompts/gpt_annotate_example.txt --mode annotate --dataset norsynthclinical --model gpt-chat --modelName gpt-4 --openAIKey $Env:OPENAI_API_KEY --output results/gpt-4-annotate-norsynth.json
 pipenv run python eval.py --prompt_path prompts/gpt_annotate_example.txt --mode annotate --dataset norsynthclinical --model gpt-chat --modelName gpt-4 --openAIKey $Env:OPENAI_API_KEY --output results/gpt-4-annotate-norsynth-single.json --singleClass
 pipenv run python eval.py --prompt_path prompts/gpt_replace_example.txt --mode replace --dataset norsynthclinical --model gpt-chat --modelName gpt-4 --openAIKey $Env:OPENAI_API_KEY --output results/gpt-4-replace-norsynth.json
