@@ -10,9 +10,9 @@ from tap import Tap
 import spacy
 import spacy.scorer
 
-
 import datasets.loaders.n2c2
 import datasets.loaders.norsynth
+import datasets.loaders.synthdeid
 
 import scoring.replacement
 
@@ -97,6 +97,9 @@ def load_model(model_name: str, prompt: str, args: ExperimentArguments):
     elif model_name == 'replicate':
         import models.replicate
         return models.replicate.ReplicateChatModel(args.modelName, prompt)
+    elif model_name == 'spacy':
+        import models.spacy
+        return models.spacy.SpacyModel()
     else:
         raise KeyError(f'Cannot find model {model_name}')
 
@@ -107,6 +110,8 @@ def load_docbin(dataset_path: str) -> spacy.tokens.DocBin:
 def load_dataset(dataset_name: str, nlp: spacy.language.Language) -> spacy.tokens.DocBin:
     if dataset_name == 'norsynthclinical':
         return datasets.loaders.norsynth.load_norsynth(nlp.vocab)
+    elif dataset_name == 'synthdeid':
+        return datasets.loaders.synthdeid.load_synthdeid(nlp.vocab)
     elif dataset_name == 'n2c2-2006':
         return datasets.loaders.n2c2.load_2006(nlp)
     elif dataset_name == 'n2c2-2014':
