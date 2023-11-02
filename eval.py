@@ -63,7 +63,7 @@ def main(args: ExperimentArguments):
         scorer = spacy.scorer.Scorer(nlp)
         if args.singleClass:
             logging.debug("Putting all entities in the PHI class.")
-            answers = _all_answers_to_label(answers, nlp, 'PHI')
+            answers = [_unify_example(a) for a in _all_answers_to_label(answers, nlp, 'PHI')]
         evaluation = scorer.score(answers)
         print(evaluation)
     elif args.mode == 'replace':
@@ -133,6 +133,38 @@ def _all_answers_to_label(answers: List[spacy.training.Example], nlp: spacy.lang
         example = spacy.training.Example(answer.predicted, answer.reference)
         fixed_examples.append(example)
     return fixed_examples
+
+def _unify_entities(doc):
+    """_unify_entities joins adjacent entities of the same class in a document."""
+    new_doc = doc.copy()
+    unified_entities = []
+    current_entity = None
+    for ent in doc.ents:
+        if current_entity is None:
+            current_entity = ent
+        else:
+            if ent.start - current_entity.end <= 1 and ent.label == current_entity.label:
+                # Merge adjacent entities
+                current_entity = doc[current_entity.start:ent.end]
+                current_entity.label = ent.label
+            else:
+                # Add the current_entity to the list and start a new one
+                unified_entities.append(current_entity)
+                current_entity = ent
+    
+    # Add the last entity
+    if current_entity is not None:
+        unified_entities.append(current_entity)
+        
+    new_doc.set_ents(unified_entities)
+    return new_doc
+
+def _unify_example(ex):
+    """_unify_example joins adjacent entities of the same class for the predicted and reference
+    document in an example."""
+    # return ex
+    return spacy.training.Example(_unify_entities(ex.predicted), _unify_entities(ex.reference))
+
 
 if __name__ == '__main__':
     args = ExperimentArguments().parse_args()
