@@ -63,7 +63,7 @@ def main(args: ExperimentArguments):
         scorer = spacy.scorer.Scorer(nlp)
         if args.singleClass:
             logging.debug("Putting all entities in the PHI class.")
-            answers = [_unify_example(a) for a in _all_answers_to_label(answers, nlp, 'PHI')]
+            answers = [_split_example(a) for a in _all_answers_to_label(answers, nlp, 'PHI')]
         evaluation = scorer.score(answers)
         print(evaluation)
     elif args.mode == 'replace':
@@ -134,37 +134,22 @@ def _all_answers_to_label(answers: List[spacy.training.Example], nlp: spacy.lang
         fixed_examples.append(example)
     return fixed_examples
 
-def _unify_entities(doc):
-    """_unify_entities joins adjacent entities of the same class in a document."""
+def _split_entities(doc):
+    """split_entities separates entities in a document into per-token entities."""
     new_doc = doc.copy()
-    unified_entities = []
-    current_entity = None
+    split_entities = []
     for ent in doc.ents:
-        if current_entity is None:
-            current_entity = ent
-        else:
-            if ent.start - current_entity.end <= 1 and ent.label == current_entity.label:
-                # Merge adjacent entities
-                current_entity = doc[current_entity.start:ent.end]
-                current_entity.label = ent.label
-            else:
-                # Add the current_entity to the list and start a new one
-                unified_entities.append(current_entity)
-                current_entity = ent
+        for token in range(ent.start, ent.end):
+            new_ent = doc[token:token+1]
+            new_ent.label = ent.label
+            split_entities.append(new_ent)
     
-    # Add the last entity
-    if current_entity is not None:
-        unified_entities.append(current_entity)
-        
-    new_doc.set_ents(unified_entities)
+    new_doc.set_ents(split_entities)
     return new_doc
 
-def _unify_example(ex):
-    """_unify_example joins adjacent entities of the same class for the predicted and reference
-    document in an example."""
-    # return ex
-    return spacy.training.Example(_unify_entities(ex.predicted), _unify_entities(ex.reference))
-
+def _split_example(ex):
+    """split_example separates entities in a SpaCy example into individual token-level entities."""
+    return spacy.training.Example(_split_entities(ex.predicted), _split_entities(ex.reference))
 
 if __name__ == '__main__':
     args = ExperimentArguments().parse_args()
