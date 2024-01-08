@@ -3,6 +3,8 @@ Evaluation harness for deidentifying Norwegian clinical text
 
 ## Installing
 
+We currently assume that Python 3.9 is used: newer versions may have issues building wheels for Fasttext on Windows (required by `string2string`)
+
 The synthetic dataset from "Instruction-guided deidentification with synthetic test cases for Norwegian clinical text", presented at NLDL 2024, is included in the repository.
 
 To get the NorSynthClinical-PHI dataset when setting up the project, clone the project with submodules:
@@ -17,11 +19,9 @@ Create a virtual environment and install the dependencies with:
 $ python -m venv venv
 $ venv/Scripts/activate
 (venv) $ pip install -r requirements.txt
-(venv) $ python -m spacy download en_core_news_sm
+(venv) $ python -m spacy download en_core_web_sm
 (venv) $ python -m spacy download nb_core_news_sm
 ```
-
-
 
 ## Running
 

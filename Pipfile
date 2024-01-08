@@ -12,14 +12,17 @@ name = "downloadpytorch"
 typed-argument-parser = "*"
 spacy = "*"
 requests = "*"
-transformers = "*"
-torch = {version = "==2.0.1+cu118", index = "downloadpytorch"}
-accelerate = "*"
 joblib = "*"
-sentencepiece = "*"
+string2string = "*"
 
 [dev-packages]
 ipykernel = "*"
+
+[torchgpu]
+transformers = "*"
+torch = {version = "==2.0.1+cu118", index = "downloadpytorch"}
+accelerate = "*"
+sentencepiece = "*"
 
 [requires]
 python_version = "3.9"
