@@ -63,7 +63,7 @@ def main(args: ExperimentArguments):
         scorer = spacy.scorer.Scorer(nlp)
         if args.singleClass:
             logging.debug("Putting all entities in the PHI class.")
-            answers = _all_answers_to_label(answers, nlp, 'PHI')
+            answers = [_split_example(a) for a in _all_answers_to_label(answers, nlp, 'PHI')]
         evaluation = scorer.score(answers)
         print(evaluation)
     elif args.mode == 'replace':
@@ -133,6 +133,23 @@ def _all_answers_to_label(answers: List[spacy.training.Example], nlp: spacy.lang
         example = spacy.training.Example(answer.predicted, answer.reference)
         fixed_examples.append(example)
     return fixed_examples
+
+def _split_entities(doc):
+    """split_entities separates entities in a document into per-token entities."""
+    new_doc = doc.copy()
+    split_entities = []
+    for ent in doc.ents:
+        for token in range(ent.start, ent.end):
+            new_ent = doc[token:token+1]
+            new_ent.label = ent.label
+            split_entities.append(new_ent)
+    
+    new_doc.set_ents(split_entities)
+    return new_doc
+
+def _split_example(ex):
+    """split_example separates entities in a SpaCy example into individual token-level entities."""
+    return spacy.training.Example(_split_entities(ex.predicted), _split_entities(ex.reference))
 
 if __name__ == '__main__':
     args = ExperimentArguments().parse_args()
